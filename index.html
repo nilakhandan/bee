@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BEE RoboRescue — Command Center</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="is-landing">
+
+<!-- ============ LANDING SCREEN ============ -->
+<section id="landing" class="landing" aria-label="Welcome">
+  <img class="landing__img" src="hero.jpg" alt="RoboRescue rover with ESP32-CAM, ultrasonic sensor and yellow wheels">
+  <div class="landing__shade"></div>
+  <div class="landing__content">
+    <p class="landing__tag">B.Tech CSE hardware project</p>
+    <h1 class="landing__title">BEE</h1>
+    <p class="landing__sub">RoboRescue: autonomous disaster response system</p>
+    <button id="startBtn" class="btn btn--start" type="button">Let’s Begin</button>
+    <p class="landing__hint">Opens in demo mode. No hardware needed.</p>
+  </div>
+</section>
+
+<!-- ============ DASHBOARD ============ -->
+<div id="app" class="app" hidden>
+
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand__logo" viewBox="0 0 40 40" aria-hidden="true">
+        <circle cx="20" cy="20" r="17" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M20 7v6M20 27v6M7 20h6M27 20h6" stroke="currentColor" stroke-width="1.5"/>
+        <rect x="14" y="14" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <circle cx="20" cy="20" r="2.5" fill="currentColor"/>
+      </svg>
+      <div>
+        <div class="brand__name"><span class="bee-name">BEE</span> <span class="bee">RoboRescue</span></div>
+        <div class="brand__sub">AUTONOMOUS DISASTER RESPONSE SYSTEM</div>
+      </div>
+    </div>
+    <div class="topbar__right">
+      <span id="connBadge" class="badge badge--off"><i class="dot"></i><span id="connText">OFFLINE</span></span>
+      <span class="wifi" id="wifi" title="Wi-Fi signal" aria-label="Wi-Fi signal: none"><b></b><b></b><b></b><b></b></span>
+      <button id="homeBtn" class="btn btn--ghost btn--sm" type="button" aria-label="Return to home screen">Home</button>
+      <time id="clock" class="clock">--:--:--</time>
+      <button id="settingsBtn" class="icon-btn" type="button" aria-label="Open settings">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="grid">
+
+    <!-- System overview -->
+    <section class="panel span-12" aria-labelledby="h-overview">
+      <h2 id="h-overview" class="panel__title">System overview</h2>
+      <div class="cards">
+        <div class="card"><span class="card__k">Robot link</span><strong id="ovLink" class="card__v">Offline</strong><small id="ovLinkSrc" class="src">demo</small></div>
+        <div class="card"><span class="card__k">Distance</span><strong class="card__v"><span id="ovDist">--</span> cm</strong><small id="ovDistSrc" class="src sim">simulated</small></div>
+        <div class="card"><span class="card__k">Movement mode</span><strong id="ovMode" class="card__v">Manual</strong><small class="src">control</small></div>
+        <div class="card"><span class="card__k">Camera</span><strong id="ovCam" class="card__v">Disconnected</strong><small class="src">no stream URL</small></div>
+        <div class="card"><span class="card__k">Obstacle alert</span><strong id="ovObs" class="card__v">Clear</strong><small id="ovObsSrc" class="src sim">simulated</small></div>
+        <div class="card"><span class="card__k">Battery</span><strong class="card__v dim">Not connected</strong><small class="src">no monitor hardware</small></div>
+      </div>
+    </section>
+
+    <!-- Camera -->
+    <section class="panel span-8" aria-labelledby="h-cam">
+      <div class="panel__head">
+        <h2 id="h-cam" class="panel__title">Live camera</h2>
+        <span id="camBadge" class="badge badge--off"><i class="dot"></i>NO SIGNAL</span>
+      </div>
+      <div id="camBox" class="cam">
+        <img id="camImg" class="cam__img" alt="Live camera feed" hidden crossorigin="anonymous">
+        <div id="camPlaceholder" class="cam__ph">
+          <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.5"/></svg>
+          <p id="camMsg">Camera not connected</p>
+          <small>Set CAMERA_STREAM_URL in script.js, then switch to Hardware mode.</small>
+        </div>
+        <div class="cam__scan" aria-hidden="true"></div>
+        <div id="camStamp" class="cam__stamp">--</div>
+      </div>
+      <div class="row">
+        <button id="capBtn" class="btn" type="button">Capture photo</button>
+        <button id="fsBtn" class="btn btn--ghost" type="button">Full screen</button>
+      </div>
+      <div id="gallery" class="gallery" aria-label="Snapshots"><p class="empty">No snapshots yet. Photos stay on this device.</p></div>
+    </section>
+
+    <!-- Control -->
+    <section class="panel span-4" aria-labelledby="h-ctl">
+      <div class="panel__head">
+        <h2 id="h-ctl" class="panel__title">Robot control</h2>
+        <div class="seg" role="group" aria-label="Operating mode">
+          <button id="modeDemo" class="seg__b is-on" type="button" aria-pressed="true">Demo</button>
+          <button id="modeHw" class="seg__b" type="button" aria-pressed="false">Hardware</button>
+        </div>
+      </div>
+      <p id="ctlNote" class="note">Demo mode: buttons update the UI only. No commands are sent.</p>
+      <div id="pad" class="pad">
+        <button class="pad__b pad__up" data-cmd="F" type="button" aria-label="Forward"><svg viewBox="0 0 24 24"><path d="M12 5l7 8h-4v6H9v-6H5z"/></svg><span>Forward</span></button>
+        <button class="pad__b pad__lt" data-cmd="L" type="button" aria-label="Left"><svg viewBox="0 0 24 24" style="transform:rotate(-90deg)"><path d="M12 5l7 8h-4v6H9v-6H5z"/></svg><span>Left</span></button>
+        <button id="stopBtn" class="pad__b pad__st" data-cmd="S" type="button" aria-label="Stop"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1"/></svg><span>Stop</span></button>
+        <button class="pad__b pad__rt" data-cmd="R" type="button" aria-label="Right"><svg viewBox="0 0 24 24" style="transform:rotate(90deg)"><path d="M12 5l7 8h-4v6H9v-6H5z"/></svg><span>Right</span></button>
+        <button class="pad__b pad__dn" data-cmd="B" type="button" aria-label="Backward"><svg viewBox="0 0 24 24" style="transform:rotate(180deg)"><path d="M12 5l7 8h-4v6H9v-6H5z"/></svg><span>Backward</span></button>
+      </div>
+      <p class="note">Hold to move. Arrow keys / WASD to drive. <kbd>Space</kbd> = emergency stop.</p>
+      <button id="estopBtn" class="btn btn--danger" type="button">Emergency stop</button>
+    </section>
+
+    <!-- Ultrasonic -->
+    <section class="panel span-4" aria-labelledby="h-us">
+      <div class="panel__head">
+        <h2 id="h-us" class="panel__title">Ultrasonic sensor</h2>
+        <span id="usSrc" class="src sim">SIMULATED</span>
+      </div>
+      <div class="big"><span id="usVal">--</span><small>cm</small></div>
+      <div class="gauge" role="meter" aria-label="Distance" aria-valuemin="0" aria-valuemax="200" aria-valuenow="0" id="gauge">
+        <div id="gaugeFill" class="gauge__fill"></div>
+        <div id="gaugeMark" class="gauge__mark"></div>
+      </div>
+      <div class="gauge__scale"><span>0</span><span>100</span><span>200 cm</span></div>
+      <div id="usStatus" class="status status--ok">CLEAR</div>
+      <label class="field">Obstacle threshold (cm)
+        <input id="thr" type="number" min="5" max="150" value="20">
+      </label>
+    </section>
+
+    <!-- Mission -->
+    <section class="panel span-4" aria-labelledby="h-ms">
+      <h2 id="h-ms" class="panel__title">Mission status</h2>
+      <dl class="kv">
+        <dt>Rover</dt><dd>BEE</dd>
+        <dt>Mission</dt><dd>Search and rescue</dd>
+        <dt>Control mode</dt><dd>
+          <div class="seg" role="group" aria-label="Manual or auto">
+            <button id="ctlManual" class="seg__b is-on" type="button">Manual</button>
+            <button id="ctlAuto" class="seg__b" type="button">Auto (demo)</button>
+          </div></dd>
+        <dt>Movement</dt><dd id="msMove">Stopped</dd>
+        <dt>Camera</dt><dd id="msCam">Disconnected</dd>
+        <dt>Sensor</dt><dd id="msSens">Simulated</dd>
+        <dt>Last command</dt><dd id="msLast">None</dd>
+        <dt>Mission timer</dt><dd id="msTimer" class="mono">00:00:00</dd>
+      </dl>
+      <p class="note">Auto mode is a UI demo only. Obstacle-avoidance logic is not implemented or tested.</p>
+    </section>
+
+    <!-- Terminal -->
+    <section class="panel span-4" aria-labelledby="h-log">
+      <div class="panel__head">
+        <h2 id="h-log" class="panel__title">Event terminal</h2>
+        <div class="row row--tight">
+          <button id="logPause" class="btn btn--sm btn--ghost" type="button">Pause</button>
+          <button id="logClear" class="btn btn--sm btn--ghost" type="button">Clear</button>
+        </div>
+      </div>
+      <div id="term" class="term" role="log" aria-live="off"></div>
+    </section>
+  </main>
+</div>
+
+<!-- Settings dialog -->
+<dialog id="settings" class="dialog">
+  <form method="dialog" id="setForm">
+    <h2>Connection settings</h2>
+    <p class="note">Use your ESP32 addresses once the firmware is uploaded. Saved only in this browser.</p>
+    <label class="field">Robot base URL <input id="setBase" type="text" placeholder="http://192.168.1.100"></label>
+    <label class="field">Camera stream URL <input id="setStream" type="text" placeholder="http://192.168.1.101:81/stream"></label>
+    <label class="field">Camera capture URL <input id="setCap" type="text" placeholder="http://192.168.1.101/capture"></label>
+    <p id="setErr" class="err" role="alert"></p>
+    <div class="row">
+      <button id="setSave" class="btn" type="button">Save</button>
+      <button class="btn btn--ghost" value="cancel">Close</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="script.js"></script>
+</body>
+</html>
